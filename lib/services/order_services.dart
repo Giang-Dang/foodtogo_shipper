@@ -31,6 +31,9 @@ class OrderServices {
     int? promotionId,
     String? searchStatus,
     DateTime? searchPlacedDate,
+    double? startLatitude,
+    double? startLongitude,
+    double? searchDistanceInKm,
     int? pageSize,
     int? pageNumber,
   }) async {
@@ -41,6 +44,9 @@ class OrderServices {
       promotionId: promotionId,
       searchStatus: searchStatus,
       searchPlacedDate: searchPlacedDate,
+      startLatitude: startLatitude,
+      startLongitude: startLongitude,
+      searchDistanceInKm: searchDistanceInKm,
       pageSize: pageSize,
       pageNumber: pageNumber,
     );
@@ -69,6 +75,9 @@ class OrderServices {
     int? promotionId,
     String? searchStatus,
     DateTime? searchPlacedDate,
+    double? startLatitude,
+    double? startLongitude,
+    double? searchDistanceInKm,
     int? pageSize,
     int? pageNumber,
   }) async {
@@ -93,6 +102,13 @@ class OrderServices {
     if (searchPlacedDate != null) {
       queryParams['searchPlacedDate'] = searchPlacedDate.toString();
     }
+    if (startLatitude != null &&
+        startLongitude != null &&
+        searchDistanceInKm != null) {
+      queryParams['startLatitude'] = startLatitude.toString();
+      queryParams['startLongitude'] = startLongitude.toString();
+      queryParams['searchDistanceInKm'] = searchDistanceInKm.toString();
+    }
     if (pageSize != null && pageNumber != null) {
       queryParams['pageSize'] = pageSize.toString();
       queryParams['pageNumber'] = pageNumber.toString();
@@ -115,6 +131,79 @@ class OrderServices {
     }
 
     return null;
+  }
+
+  Future<Order?> getById(int orderId) async {
+    final orderDTO = await getDTO(orderId);
+
+    if (orderDTO == null) {
+      return null;
+    }
+
+    final MerchantServices merchantServices = MerchantServices();
+    final CustomerServices customerServices = CustomerServices();
+    final ShipperServices shipperServices = ShipperServices();
+    final PromotionServices promotionServices = PromotionServices();
+
+    final Merchant? merchant = await merchantServices.get(orderDTO.merchantId);
+    final Customer? customer = await customerServices.get(orderDTO.customerId);
+    Shipper? shipper;
+    if (orderDTO.shipperId != null) {
+      shipper = await shipperServices.get(orderDTO.shipperId!);
+    }
+
+    Promotion? promotion;
+    if (orderDTO.promotionId != null) {
+      promotion = await promotionServices.get(orderDTO.promotionId!);
+    }
+
+    if (merchant == null || customer == null) {
+      return null;
+    }
+
+    Order order = Order(
+      id: orderDTO.id,
+      merchant: merchant,
+      shipper: shipper,
+      customer: customer,
+      promotion: promotion,
+      placedTime: orderDTO.placedTime,
+      eta: orderDTO.eta,
+      deliveryCompletionTime: orderDTO.deliveryCompletionTime,
+      orderPrice: orderDTO.orderPrice,
+      shippingFee: orderDTO.shippingFee,
+      appFee: orderDTO.appFee,
+      promotionDiscount: orderDTO.promotionDiscount,
+      status: orderDTO.status,
+      cancelledBy: orderDTO.cancelledBy,
+      cancellationReason: orderDTO.cancellationReason,
+      deliveryAddress: orderDTO.deliveryAddress,
+      deliveryLatitude: orderDTO.deliveryLatitude,
+      deliveryLongitude: orderDTO.deliveryLongitude,
+    );
+
+    return order;
+  }
+
+  Future<OrderDTO?> getDTO(int orderId) async {
+    final newApiUrl = '$_apiUrl/$orderId';
+    final jwtToken = UserServices.jwtToken;
+
+    final url = Uri.http(Secrets.kFoodToGoAPILink, newApiUrl);
+
+    final responseJson = await http.get(
+      url,
+      headers: {'Authorization': 'Bearer $jwtToken'},
+    );
+
+    if (responseJson.statusCode != HttpStatus.ok) {
+      log('OrderServices.getDTO() responseJson.statusCode != HttpStatus.ok');
+      return null;
+    }
+
+    final responseData = json.decode(responseJson.body);
+    final dto = OrderDTO.fromJson(responseData['result']);
+    return dto;
   }
 
   Future<Order?> get(OrderDTO orderDTO) async {
@@ -244,26 +333,57 @@ class OrderServices {
   }
 
   String getOrderStatusInfo(String orderStatus) {
-    if (orderStatus == OrderStatus.Placed.name.toLowerCase()) {
+    if (orderStatus.toLowerCase() == OrderStatus.Placed.name.toLowerCase()) {
       return 'The order has been placed. Finding shipper...';
     }
-    if (orderStatus == OrderStatus.Getting.name.toLowerCase()) {
+    if (orderStatus.toLowerCase() == OrderStatus.Getting.name.toLowerCase()) {
       return 'Shipper is picking up the package.';
     }
-    if (orderStatus == OrderStatus.DriverAtMerchant.name.toLowerCase()) {
+    if (orderStatus.toLowerCase() ==
+        OrderStatus.DriverAtMerchant.name.toLowerCase()) {
       return 'Shipper is at the merchant';
     }
-    if (orderStatus == OrderStatus.Delivering.name.toLowerCase()) {
+    if (orderStatus.toLowerCase() ==
+        OrderStatus.Delivering.name.toLowerCase()) {
       return 'Shipper is delivering the package.';
     }
-    if (orderStatus == OrderStatus.DriverAtDeliveryPoint.name.toLowerCase()) {
+    if (orderStatus.toLowerCase() ==
+        OrderStatus.DriverAtDeliveryPoint.name.toLowerCase()) {
       return 'Shipper is at the delivery point';
     }
-    if (orderStatus == OrderStatus.Completed.name.toLowerCase()) {
+    if (orderStatus.toLowerCase() == OrderStatus.Completed.name.toLowerCase()) {
       return 'Order has been completed';
     }
-    if (orderStatus == OrderStatus.Cancelled.name.toLowerCase()) {
+    if (orderStatus.toLowerCase() == OrderStatus.Cancelled.name.toLowerCase()) {
       return 'Order has been cancelled';
+    }
+    return 'NA';
+  }
+
+  String getOrderStatusText(String orderStatus) {
+    if (orderStatus.toLowerCase() == OrderStatus.Placed.name.toLowerCase()) {
+      return 'Placed';
+    }
+    if (orderStatus.toLowerCase() == OrderStatus.Getting.name.toLowerCase()) {
+      return 'Getting';
+    }
+    if (orderStatus.toLowerCase() ==
+        OrderStatus.DriverAtMerchant.name.toLowerCase()) {
+      return 'Driver At Merchant';
+    }
+    if (orderStatus.toLowerCase() ==
+        OrderStatus.Delivering.name.toLowerCase()) {
+      return 'Delivering';
+    }
+    if (orderStatus.toLowerCase() ==
+        OrderStatus.DriverAtDeliveryPoint.name.toLowerCase()) {
+      return 'Driver At Delivery Point';
+    }
+    if (orderStatus.toLowerCase() == OrderStatus.Completed.name.toLowerCase()) {
+      return 'Completed';
+    }
+    if (orderStatus.toLowerCase() == OrderStatus.Cancelled.name.toLowerCase()) {
+      return 'Cancelled';
     }
     return 'NA';
   }

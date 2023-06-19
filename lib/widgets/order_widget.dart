@@ -14,27 +14,31 @@ class OrderWidget extends StatefulWidget {
 }
 
 class _OrderWidgetState extends State<OrderWidget> {
-  Future<List<Order>> _getUserOrders() async {
-    final orderServices = OrderServices();
+  final _distanceTextController = TextEditingController();
+  final _formDistanceKey = GlobalKey<FormState>();
+
+  Future<List<Order>> _getOrders(double? inputDistance) async {
+    double distance = 10.0;
+    if (inputDistance != null) {
+      distance = inputDistance;
+    }
+    if (_formDistanceKey.currentState != null) {
+      if (!_formDistanceKey.currentState!.validate()) {
+        return [];
+      }
+    }
 
     List<Order> orderList = [];
 
-    List<Future> futures = [];
-    OrderStatus.values.forEach((element) {
-      if (element != OrderStatus.Completed &&
-          element != OrderStatus.Completed) {
-        futures.add(() async {
-          orderList = [
-            ...await orderServices.getAll(
-                  customerId: UserServices.userId,
-                  searchStatus: element.name,
-                ) ??
-                []
-          ];
-        }());
-      }
-    });
-    await Future.wait(futures);
+    final orderServices = OrderServices();
+
+    orderList = await orderServices.getAll(
+          searchStatus: OrderStatus.Placed.name,
+          startLatitude: UserServices.currentLatitude,
+          startLongitude: UserServices.currentLongitude,
+          searchDistanceInKm: distance,
+        ) ??
+        [];
 
     return orderList;
   }
@@ -43,16 +47,20 @@ class _OrderWidgetState extends State<OrderWidget> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    _distanceTextController.text = '10';
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: _getUserOrders(),
+      future: _getOrders(double.tryParse(_distanceTextController.text)),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(
-            child: CircularProgressIndicator.adaptive(),
+          return Container(
+            color: KColors.kBackgroundColor,
+            child: const Center(
+              child: CircularProgressIndicator.adaptive(),
+            ),
           );
         } else {
           return Container(
@@ -60,6 +68,62 @@ class _OrderWidgetState extends State<OrderWidget> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                    child: Form(
+                      key: _formDistanceKey,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            flex: 4,
+                            child: Text(
+                              'Search distance:',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge!
+                                  .copyWith(
+                                    color: KColors.kTextColor,
+                                  ),
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          Flexible(
+                            child: TextFormField(
+                              controller: _distanceTextController,
+                              style: const TextStyle(fontSize: 16),
+                              decoration: const InputDecoration(
+                                suffixText: 'km',
+                              ),
+                              keyboardType: TextInputType.number,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter a valid distance.';
+                                }
+
+                                if (double.tryParse(value) == null) {
+                                  return 'Please enter a valid distance.';
+                                }
+                                return null;
+                              },
+                              onFieldSubmitted: (value) {
+                                if (_formDistanceKey.currentState!.validate()) {
+                                  setState(() {});
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  snapshot.data!.isEmpty
+                      ? const Center(
+                          child: Text(
+                          'There are currently no available orders.',
+                          style: TextStyle(fontSize: 16),
+                        ))
+                      : Container(),
                   for (var order in snapshot.data!) OrderListItem(order: order),
                 ],
               ),

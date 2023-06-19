@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:add_to_cart_animation/add_to_cart_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:foodtogo_shippers/models/menu_item.dart';
+import 'package:foodtogo_shippers/services/online_shipper_status_services.dart';
 import 'package:foodtogo_shippers/services/user_services.dart';
 import 'package:foodtogo_shippers/settings/kcolors.dart';
 import 'package:foodtogo_shippers/widgets/me_widget.dart';
@@ -25,44 +24,18 @@ class TabsScreen extends ConsumerStatefulWidget {
 class _TabsScreenState extends ConsumerState<TabsScreen> {
   DateTime _timeBackPressed = DateTime.now();
   int _selectedPageIndex = 0;
-  int _totalItemQuantityInCart = 0;
 
-  Widget _activePage = const HomeWidget();
-  bool _isAppBarShow = false;
-  bool _isFloatingButtonShow = true;
+  Widget _activePage = const OrderWidget();
+  bool _isAppBarShow = true;
+  late bool _isFloatingButtonShow;
 
   Timer? _initTimer;
 
-  removeFromCart(MenuItem menuItem) async {
-    final cartServices = CartServices();
-    int quantity = await cartServices.getQuantity(menuItem.id);
-    if (quantity == 0) {
-      return;
-    }
-    bool isRemovingSuccess =
-        await cartServices.addMenuItem(menuItem, quantity - 1);
-
-    if (isRemovingSuccess) {
-      _getTotalItemQuantityInCart();
-    }
-  }
-
-  addToCart(GlobalKey widgetKey, MenuItem menuItem) async {
-    final cartServices = CartServices();
-    int quantity = await cartServices.getQuantity(menuItem.id);
-    bool isAddingSuccess =
-        await cartServices.addMenuItem(menuItem, quantity + 1);
-
-    if (isAddingSuccess) {
-      _getTotalItemQuantityInCart();
-    }
-  }
-
   _deleteLocation() async {
-    final onlineCustomerLocationServices = OnlineCustomerLocationServices();
+    final onlineShipperStatusServices = OnlineShipperStatusServices();
     int userId = UserServices.userId ?? 0;
     if (userId != 0) {
-      await onlineCustomerLocationServices.delete(userId);
+      await onlineShipperStatusServices.delete(userId);
       log('didChangeAppLifecycleState complete');
     }
   }
@@ -71,42 +44,19 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
     if (mounted) {
       setState(() {
         _selectedPageIndex = index;
-        if (_selectedPageIndex == TabName.home.index) {
-          _activePage = const HomeWidget();
-          _isAppBarShow = false;
-          _isFloatingButtonShow = true;
-        } else if (_selectedPageIndex == TabName.orders.index) {
+        if (_selectedPageIndex == TabName.orders.index) {
           _activePage = const OrderWidget();
           _isAppBarShow = true;
           _isFloatingButtonShow = false;
-        } else if (_selectedPageIndex == TabName.favorites.index) {
-          _activePage = FavoriteWidget(
-            addToCart: addToCart,
-            removeFromCart: removeFromCart,
-          );
-          _isAppBarShow = false;
-          _isFloatingButtonShow = true;
         } else if (_selectedPageIndex == TabName.me.index) {
           _activePage = const Me();
           _isAppBarShow = false;
           _isFloatingButtonShow = false;
         } else {
-          _activePage = const HomeWidget();
+          _activePage = const OrderWidget();
           _isAppBarShow = false;
           _isFloatingButtonShow = false;
         }
-      });
-    }
-  }
-
-  _getTotalItemQuantityInCart() async {
-    final cartServices = CartServices();
-
-    final totalQuantity = await cartServices.getTotalQuantity();
-
-    if (mounted) {
-      setState(() {
-        _totalItemQuantityInCart = totalQuantity;
       });
     }
   }
@@ -136,12 +86,7 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
     }
   }
 
-  _onFloatingActionButtonPressed() {
-    if (context.mounted) {
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => const CartScreen()));
-    }
-  }
+  _onFloatingActionButtonPressed() {}
 
   @override
   void initState() {
@@ -161,14 +106,12 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    _getTotalItemQuantityInCart();
-
     AppBar? appBar = !_isAppBarShow
         ? null
         : AppBar(
             backgroundColor: KColors.kBackgroundColor,
             title: Text(
-              'FoodToGo - Customer',
+              'FoodToGo - Shipper',
               style: Theme.of(context).textTheme.titleLarge!.copyWith(
                     color: KColors.kPrimaryColor,
                     fontSize: 24,
@@ -182,42 +125,15 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
         appBar: appBar,
         body: _activePage,
         floatingActionButton: _isFloatingButtonShow
-            ? Stack(
-                children: [
-                  SizedBox(
-                    width: 50,
-                    height: 50,
-                    child: FloatingActionButton(
-                      onPressed: _onFloatingActionButtonPressed,
-                      elevation: 10.0,
-                      shape: const CircleBorder(),
-                      child: const Icon(Icons.shopping_cart_outlined),
-                    ),
-                  ),
-                  Positioned(
-                    top: 16,
-                    right: 3,
-                    child: Container(
-                      padding: EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        color: KColors.kPrimaryColor,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 14,
-                        minHeight: 14,
-                      ),
-                      child: Text(
-                        '$_totalItemQuantityInCart',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ],
+            ? SizedBox(
+                width: 50,
+                height: 50,
+                child: FloatingActionButton(
+                  onPressed: _onFloatingActionButtonPressed,
+                  elevation: 10.0,
+                  shape: const CircleBorder(),
+                  child: const Icon(Icons.refresh),
+                ),
               )
             : null,
         bottomNavigationBar: BottomNavigationBar(
@@ -233,36 +149,12 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
           items: const [
             BottomNavigationBarItem(
               icon: Icon(
-                Icons.restaurant,
-                color: KColors.kLightTextColor,
-              ),
-              label: 'Home',
-              activeIcon: Icon(
-                Icons.restaurant,
-                color: KColors.kPrimaryColor,
-              ),
-              backgroundColor: KColors.kOnBackgroundColor,
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(
                 Icons.receipt_long_outlined,
                 color: KColors.kLightTextColor,
               ),
               label: 'Orders',
               activeIcon: Icon(
-                Icons.receipt_long_outlined,
-                color: KColors.kPrimaryColor,
-              ),
-              backgroundColor: KColors.kOnBackgroundColor,
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(
-                Icons.favorite_outline,
-                color: KColors.kLightTextColor,
-              ),
-              label: 'Favorites',
-              activeIcon: Icon(
-                Icons.favorite,
+                Icons.receipt_long,
                 color: KColors.kPrimaryColor,
               ),
               backgroundColor: KColors.kOnBackgroundColor,

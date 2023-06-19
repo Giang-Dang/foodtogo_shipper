@@ -1,7 +1,7 @@
-import 'package:foodtogo_customers/models/customer.dart';
-import 'package:foodtogo_customers/models/merchant.dart';
-import 'package:foodtogo_customers/models/promotion.dart';
-import 'package:foodtogo_customers/models/shipper.dart';
+import 'package:foodtogo_shippers/models/customer.dart';
+import 'package:foodtogo_shippers/models/merchant.dart';
+import 'package:foodtogo_shippers/models/promotion.dart';
+import 'package:foodtogo_shippers/models/shipper.dart';
 
 class Order {
   final int id;

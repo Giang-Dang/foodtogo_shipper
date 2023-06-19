@@ -40,8 +40,17 @@ class OrderListItem extends StatelessWidget {
         vertical: 8,
       ),
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(5),
-          color: orderServices.getOrderColor(order.status).withOpacity(0.08)),
+        borderRadius: BorderRadius.circular(5),
+        color: KColors.kOnBackgroundColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 3,
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          )
+        ],
+      ),
       child: Material(
         type: MaterialType.transparency,
         child: ListTile(

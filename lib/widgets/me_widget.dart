@@ -4,10 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:foodtogo_shippers/models/customer.dart';
 import 'package:foodtogo_shippers/models/dto/update_dto/customer_update_dto.dart';
+import 'package:foodtogo_shippers/models/dto/update_dto/shipper_update_dto.dart';
 import 'package:foodtogo_shippers/models/dto/update_dto/user_update_dto.dart';
 import 'package:foodtogo_shippers/models/dto/user_dto.dart';
+import 'package:foodtogo_shippers/models/shipper.dart';
+import 'package:foodtogo_shippers/screens/edit_shipper_screen.dart';
 import 'package:foodtogo_shippers/screens/login_screen.dart';
 import 'package:foodtogo_shippers/services/customer_services.dart';
+import 'package:foodtogo_shippers/services/shipper_services.dart';
 import 'package:foodtogo_shippers/services/user_services.dart';
 import 'package:foodtogo_shippers/settings/kcolors.dart';
 
@@ -20,7 +24,7 @@ class Me extends ConsumerStatefulWidget {
 
 class _MeState extends ConsumerState<Me> {
   UserDTO? _currentUser;
-  Customer? _currentCustomer;
+  Shipper? _currentShipper;
 
   _loadCurrentUser() async {
     if (UserServices.userId == null) {
@@ -53,24 +57,29 @@ class _MeState extends ConsumerState<Me> {
       return;
     }
 
-    final customerServices = CustomerServices();
+    final shipperServices = ShipperServices();
 
-    var customer = await customerServices.get(UserServices.userId!);
+    var shipper = await shipperServices.get(UserServices.userId!);
+
+    if (shipper == null) {
+      log('_loadCurrentCustomer shipper == null');
+      throw Error();
+    }
 
     if (mounted) {
       setState(() {
-        _currentCustomer = customer;
+        _currentShipper = shipper;
       });
     }
   }
 
   _onTapChangeUserInfoPressed() async {
-    if (_currentUser != null && _currentCustomer != null) {
+    if (_currentUser != null && _currentShipper != null) {
       List<Object>? results = await Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => EditCustomerInfoScreen(
+          builder: (context) => EditShipperScreen(
             userDTO: _currentUser!,
-            customer: _currentCustomer!,
+            shipper: _currentShipper!,
           ),
         ),
       );
@@ -81,7 +90,7 @@ class _MeState extends ConsumerState<Me> {
 
       if (results.length == 2) {
         final userUpdateDTO = results[0] as UserUpdateDTO;
-        final customerUpdateDTO = results[1] as CustomerUpdateDTO;
+        final shipperUpdateDTO = results[1] as ShipperUpdateDTO;
 
         setState(() {
           _currentUser = UserDTO(
@@ -92,15 +101,19 @@ class _MeState extends ConsumerState<Me> {
             email: userUpdateDTO.email,
           );
 
-          _currentCustomer = Customer(
-              customerId: _currentCustomer!.customerId,
-              firstName: customerUpdateDTO.firstName,
-              lastName: customerUpdateDTO.lastName,
-              middleName: customerUpdateDTO.middleName,
-              address: customerUpdateDTO.address,
-              phoneNumber: _currentCustomer!.phoneNumber,
-              email: _currentCustomer!.email,
-              rating: customerUpdateDTO.rating);
+          _currentShipper = Shipper(
+            userId: _currentShipper!.userId,
+            firstName: shipperUpdateDTO.firstName,
+            lastName: shipperUpdateDTO.lastName,
+            middleName: shipperUpdateDTO.middleName,
+            vehicleNumberPlate: shipperUpdateDTO.vehicleNumberPlate,
+            vehicleType: shipperUpdateDTO.vehicleType,
+            phoneNumber: _currentShipper!.phoneNumber,
+            email: _currentShipper!.email,
+            rating: shipperUpdateDTO.rating,
+            successOrderCount: _currentShipper!.successOrderCount,
+            cancelledOrderCount: _currentShipper!.cancelledOrderCount,
+          );
         });
       }
     }
@@ -131,7 +144,7 @@ class _MeState extends ConsumerState<Me> {
       child: CircularProgressIndicator(),
     );
 
-    if (_currentUser != null && _currentCustomer != null) {
+    if (_currentUser != null && _currentShipper != null) {
       contain = Container(
         padding: const EdgeInsets.fromLTRB(20, 40, 20, 10),
         width: double.infinity,
@@ -201,7 +214,7 @@ class _MeState extends ConsumerState<Me> {
                           ListTile(
                             leading: const Icon(Icons.badge),
                             title: Text(
-                                '${_currentCustomer!.lastName} ${_currentCustomer!.middleName} ${_currentCustomer!.firstName}'),
+                                '${_currentShipper!.lastName} ${_currentShipper!.middleName} ${_currentShipper!.firstName}'),
                           ),
                           ListTile(
                             leading: const Icon(Icons.phone),
@@ -212,8 +225,8 @@ class _MeState extends ConsumerState<Me> {
                             title: Text(_currentUser!.email),
                           ),
                           ListTile(
-                            leading: const Icon(Icons.pin_drop),
-                            title: Text(_currentCustomer!.address),
+                            leading: const Icon(Icons.star),
+                            title: Text(_currentShipper!.rating.toString()),
                           ),
                         ],
                       ),
@@ -236,21 +249,22 @@ class _MeState extends ConsumerState<Me> {
                       ),
                       child: Column(
                         children: [
-                          Material(
-                            elevation: 3,
-                            borderRadius: BorderRadius.circular(10.0),
-                            color: KColors.kOnBackgroundColor,
-                            child: ListTile(
-                              leading: const Icon(
-                                Icons.person,
-                                color: KColors.kPrimaryColor,
+                          if (_currentShipper != null && _currentUser != null)
+                            Material(
+                              elevation: 3,
+                              borderRadius: BorderRadius.circular(10.0),
+                              color: KColors.kOnBackgroundColor,
+                              child: ListTile(
+                                leading: const Icon(
+                                  Icons.person,
+                                  color: KColors.kPrimaryColor,
+                                ),
+                                title: const Text('Change your account info'),
+                                onTap: () {
+                                  _onTapChangeUserInfoPressed();
+                                },
                               ),
-                              title: const Text('Change your account info'),
-                              onTap: () {
-                                _onTapChangeUserInfoPressed();
-                              },
                             ),
-                          ),
                           const SizedBox(height: 10),
                           Material(
                             elevation: 3,

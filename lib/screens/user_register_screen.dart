@@ -6,6 +6,7 @@ import 'package:foodtogo_shippers/models/dto/login_request_dto.dart';
 import 'package:foodtogo_shippers/models/dto/register_request_dto.dart';
 import 'package:foodtogo_shippers/models/enum/login_from_app.dart';
 import 'package:foodtogo_shippers/screens/login_screen.dart';
+import 'package:foodtogo_shippers/screens/shipper_register_screen.dart';
 import 'package:foodtogo_shippers/services/user_services.dart';
 import 'package:foodtogo_shippers/settings/kcolors.dart';
 
@@ -100,7 +101,7 @@ class _UserRegisterScreenState extends State<UserRegisterScreen> {
       final loginRequestDTO = LoginRequestDTO(
         username: _usernameController.text,
         password: _passwordController.text,
-        loginFromApp: LoginFromApp.Customer.name,
+        loginFromApp: LoginFromApp.Shipper.name,
       );
       _userServices.login(loginRequestDTO);
       _userServices.getUserLocation();

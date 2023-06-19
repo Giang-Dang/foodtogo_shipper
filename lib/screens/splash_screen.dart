@@ -3,14 +3,16 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:foodtogo_shippers/models/dto/create_dto/online_customer_location_create_dto.dart';
-import 'package:foodtogo_shippers/models/dto/update_dto/online_customer_location_update_dto.dart';
-import 'package:foodtogo_shippers/models/online_customer_location.dart';
+import 'package:foodtogo_shippers/models/dto/create_dto/online_shipper_status_create_dto.dart';
+import 'package:foodtogo_shippers/models/dto/update_dto/online_shipper_status_update_dto.dart';
+import 'package:foodtogo_shippers/screens/current_accepted_order_screen.dart';
 import 'package:foodtogo_shippers/screens/login_screen.dart';
 import 'package:foodtogo_shippers/screens/shipper_register_screen.dart';
 import 'package:foodtogo_shippers/screens/tabs_screen.dart';
+import 'package:foodtogo_shippers/services/accepted_order_services.dart';
 import 'package:foodtogo_shippers/services/customer_services.dart';
 import 'package:foodtogo_shippers/services/online_shipper_status_services.dart';
+import 'package:foodtogo_shippers/services/shipper_services.dart';
 import 'package:foodtogo_shippers/services/user_services.dart';
 import 'package:foodtogo_shippers/settings/kcolors.dart';
 
@@ -29,6 +31,53 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late Animation<double> _textAnimation;
   Timer? _loginTimer;
 
+  _updateLocation() async {
+    final onlineShipperStatusSevices = OnlineShipperStatusServices();
+    final getResult =
+        await onlineShipperStatusSevices.getDTO(UserServices.userId!);
+
+    if (getResult == null) {
+      final onlineShipperStatusCreateDTO = OnlineShipperStatusCreateDTO(
+        shipperId: UserServices.userId!,
+        geoLatitude: UserServices.currentLatitude,
+        geoLongitude: UserServices.currentLongitude,
+        isAvailable: true,
+      );
+      final createResult =
+          await onlineShipperStatusSevices.create(onlineShipperStatusCreateDTO);
+    } else {
+      final onlineShipperStatusUpdateDTO = OnlineShipperStatusUpdateDTO(
+        shipperId: UserServices.userId!,
+        geoLatitude: UserServices.currentLatitude,
+        geoLongitude: UserServices.currentLongitude,
+        isAvailable: getResult.isAvailable,
+      );
+      final updateResult = await onlineShipperStatusSevices.update(
+          UserServices.userId!, onlineShipperStatusUpdateDTO);
+    }
+  }
+
+  _routeByCurrentOrder(int currentOrderId) {
+    if (currentOrderId == 0) {
+      if (context.mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const TabsScreen(),
+          ),
+        );
+      }
+    } else {
+      if (context.mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) =>
+                CurrentAcceptedOrderScreen(orderId: currentOrderId),
+          ),
+        );
+      }
+    }
+  }
+
   _login() async {
     //delay for animation
     // await _delay(100);
@@ -40,31 +89,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     await userServices.checkLocalLoginAuthorized();
     if (UserServices.isAuthorized) {
       //update location to server
-      final onlineCustomerLocationCreateDTO = OnlineCustomerLocationCreateDTO(
-        customerId: UserServices.userId!,
-        geoLatitude: UserServices.currentLatitude,
-        geoLongitude: UserServices.currentLongitude,
-      );
+      await _updateLocation();
 
-      final onlineCustomerLocationSevices = OnlineShipperStatusServices();
-      final createResult = await onlineCustomerLocationSevices
-          .create(onlineCustomerLocationCreateDTO);
+      final shipperServices = ShipperServices();
+      final shipperQueryResult =
+          await shipperServices.getDTO(UserServices.userId!);
 
-      if (!createResult) {
-        final onlineCustomerLocationUpdateDTO = OnlineCustomerLocationUpdateDTO(
-          customerId: UserServices.userId!,
-          geoLatitude: UserServices.currentLatitude,
-          geoLongitude: UserServices.currentLongitude,
-        );
-        final updateResult = await onlineCustomerLocationSevices.update(
-            UserServices.userId!, onlineCustomerLocationUpdateDTO);
-      }
-
-      final customerServices = CustomerServices();
-      final customerQueryResult =
-          await customerServices.getDTO(UserServices.userId!);
-
-      if (customerQueryResult == null) {
+      if (shipperQueryResult == null) {
         if (context.mounted) {
           Navigator.pushReplacement(
             context,
@@ -76,15 +107,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         }
         return;
       }
+
+      //check if shipper is currently delivering an order
+      final acceptedOrderServices = AcceptedOrderServices();
+
+      final currentOrderId =
+          await acceptedOrderServices.getCurrentOrderId(UserServices.userId!);
+      UserServices.currentOrderId = currentOrderId;
+
       //route
-      if (context.mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const TabsScreen(),
-          ),
-        );
-      }
+      _routeByCurrentOrder(currentOrderId);
     } else {
       if (context.mounted) {
         Navigator.pushReplacement(

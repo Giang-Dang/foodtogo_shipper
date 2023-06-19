@@ -1,4 +1,4 @@
-import 'package:foodtogo_customers/models/menu_item.dart';
+import 'package:foodtogo_shippers/models/menu_item.dart';
 
 class OrderDetail {
   final int id;

@@ -4,9 +4,11 @@ import 'package:foodtogo_shippers/models/dto/update_dto/order_update_dto.dart';
 import 'package:foodtogo_shippers/models/enum/order_status.dart';
 import 'package:foodtogo_shippers/models/enum/user_type.dart';
 import 'package:foodtogo_shippers/models/order.dart';
+import 'package:foodtogo_shippers/screens/current_accepted_order_screen.dart';
+import 'package:foodtogo_shippers/services/accepted_order_services.dart';
 import 'package:foodtogo_shippers/services/order_services.dart';
+import 'package:foodtogo_shippers/services/user_services.dart';
 import 'package:foodtogo_shippers/settings/kcolors.dart';
-import 'package:foodtogo_shippers/widgets/checkout_menu_item_list.dart';
 import 'package:foodtogo_shippers/widgets/order_deliver_address.dart';
 import 'package:foodtogo_shippers/widgets/order_menu_item_list.dart';
 import 'package:foodtogo_shippers/widgets/order_merchant.dart';
@@ -63,6 +65,10 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
       return true;
     }
     return false;
+  }
+
+  _isShowingAcceptButton(Order order) {
+    return order.status == OrderStatus.Placed.name.toLowerCase();
   }
 
   _showCancellationBottomSheet(
@@ -172,6 +178,86 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
     }
   }
 
+  _onAcceptOrderTap(Order order) async {
+    final acceptedOrderServices = AcceptedOrderServices();
+    final currentOrder =
+        await acceptedOrderServices.getCurrentOrderId(UserServices.userId!);
+
+    if (currentOrder != 0) {
+      _showAlertDialog('Cannot Accept New Order',
+          'You have not finished delivering a previous order. Please finish it before accepting a new one.',
+          () {
+        if (context.mounted) {
+          Navigator.of(context).pop();
+        }
+      });
+      return;
+    }
+
+    final orderServices = OrderServices();
+
+    final orderUpdateDTO = OrderUpdateDTO(
+        id: order.id,
+        merchantId: order.merchant.merchantId,
+        shipperId: UserServices.userId,
+        customerId: order.customer.customerId,
+        promotionId: order.promotion == null ? null : order.promotion!.id,
+        placedTime: order.placedTime,
+        eta: order.eta,
+        deliveryCompletionTime: order.deliveryCompletionTime,
+        orderPrice: order.orderPrice,
+        shippingFee: order.shippingFee,
+        appFee: order.appFee,
+        promotionDiscount: order.promotionDiscount,
+        status: OrderStatus.Getting.name.toLowerCase(),
+        cancellationReason: order.cancellationReason,
+        cancelledBy: order.cancelledBy,
+        deliveryAddress: order.deliveryAddress,
+        deliveryLongitude: order.deliveryLongitude,
+        deliveryLatitude: order.deliveryLatitude);
+
+    final isUpdateSuccess =
+        await orderServices.update(order.id, orderUpdateDTO);
+
+    if (isUpdateSuccess) {
+      final isOrderStored =
+          await acceptedOrderServices.insert(UserServices.userId!, order.id);
+
+      if (context.mounted && isOrderStored) {
+        final newOrder = Order(
+            id: order.id,
+            merchant: order.merchant,
+            shipper: order.shipper,
+            customer: order.customer,
+            promotion: order.promotion,
+            placedTime: order.placedTime,
+            eta: order.eta,
+            deliveryCompletionTime: order.deliveryCompletionTime,
+            orderPrice: order.orderPrice,
+            shippingFee: order.shippingFee,
+            appFee: order.appFee,
+            promotionDiscount: order.promotionDiscount,
+            status: OrderStatus.Getting.name.toLowerCase(),
+            cancellationReason: order.cancellationReason,
+            cancelledBy: order.cancelledBy,
+            deliveryAddress: order.deliveryAddress,
+            deliveryLongitude: order.deliveryLongitude,
+            deliveryLatitude: order.deliveryLatitude);
+
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+          builder: (context) => CurrentAcceptedOrderScreen(orderId: order.id),
+        ));
+      }
+    } else {
+      _showAlertDialog('Cannot Accept Order',
+          'We are experiencing an error. Please try again later.', () {
+        if (context.mounted) {
+          Navigator.of(context).pop();
+        }
+      });
+    }
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -189,6 +275,7 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final isAbleToCancel = _isAbleToCancel(widget.order);
+    final isShowingAcceptButton = _isShowingAcceptButton(widget.order);
 
     return Scaffold(
       appBar: AppBar(
@@ -221,14 +308,30 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
             const SizedBox(height: 20),
             OrderPriceWidget(order: widget.order),
 
-            if (isAbleToCancel) const SizedBox(height: 10),
-            if (isAbleToCancel) const SizedBox(height: 20),
-            if (isAbleToCancel)
+            if (isAbleToCancel && !isShowingAcceptButton)
+              const SizedBox(height: 30),
+            if (isAbleToCancel && !isShowingAcceptButton)
               ElevatedButton(
                   onPressed: () {
                     _showCancellationBottomSheet(context, widget.order);
                   },
                   child: const Text('Cancel Order')),
+
+            if (isShowingAcceptButton) const SizedBox(height: 30),
+            if (isShowingAcceptButton)
+              ElevatedButton(
+                onPressed: () {
+                  _onAcceptOrderTap(widget.order);
+                },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.green,
+                ),
+                child: const Text(
+                  'Accept Order',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
 
             const SizedBox(height: 30),
           ],

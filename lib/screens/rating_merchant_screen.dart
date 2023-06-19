@@ -15,7 +15,7 @@ class RatingMerchantScreen extends StatefulWidget {
   const RatingMerchantScreen({
     Key? key,
     required this.order,
-    this.fromUserType = UserType.Customer,
+    this.fromUserType = UserType.Shipper,
   }) : super(key: key);
 
   final Order order;
@@ -58,7 +58,7 @@ class _RatingMerchantScreenState extends State<RatingMerchantScreen> {
     final merchantRatingServices = MerchantRatingServices();
     final queryResult = await merchantRatingServices.getAll(
       fromUserId: UserServices.userId,
-      fromUserType: UserType.Customer.name,
+      fromUserType: UserType.Shipper.name,
       toMerchantId: order.merchant.merchantId,
       orderId: order.id,
       pageNumber: 1,
@@ -90,7 +90,7 @@ class _RatingMerchantScreenState extends State<RatingMerchantScreen> {
       final createDTO = MerchantRatingCreateDTO(
         id: 0,
         fromUserId: UserServices.userId!,
-        fromUserType: UserType.Customer.name,
+        fromUserType: UserType.Shipper.name,
         toMerchantId: order.merchant.merchantId,
         orderId: order.id,
         rating: rating,
@@ -123,7 +123,7 @@ class _RatingMerchantScreenState extends State<RatingMerchantScreen> {
     final merchantRatingServices = MerchantRatingServices();
     final queryResult = await merchantRatingServices.getAll(
       fromUserId: UserServices.userId,
-      fromUserType: UserType.Customer.name,
+      fromUserType: UserType.Shipper.name,
       toMerchantId: order.merchant.merchantId,
       orderId: order.id,
       pageNumber: 1,
@@ -211,7 +211,7 @@ class _RatingMerchantScreenState extends State<RatingMerchantScreen> {
               onPressed: () {
                 _onRatePressed(
                     order: widget.order,
-                    fromUserType: UserType.Customer,
+                    fromUserType: UserType.Shipper,
                     userId: UserServices.userId!,
                     rating: _rating);
               },

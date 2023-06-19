@@ -1,12 +1,18 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:foodtogo_shippers/models/dto/create_dto/online_customer_location_create_dto.dart';
+import 'package:foodtogo_shippers/models/dto/create_dto/online_shipper_status_create_dto.dart';
 import 'package:foodtogo_shippers/models/dto/login_request_dto.dart';
-import 'package:foodtogo_shippers/models/dto/update_dto/online_customer_location_update_dto.dart';
+import 'package:foodtogo_shippers/models/dto/update_dto/online_shipper_status_update_dto.dart';
 import 'package:foodtogo_shippers/models/enum/login_from_app.dart';
+import 'package:foodtogo_shippers/screens/current_accepted_order_screen.dart';
+import 'package:foodtogo_shippers/screens/shipper_register_screen.dart';
 import 'package:foodtogo_shippers/screens/tabs_screen.dart';
 import 'package:foodtogo_shippers/screens/user_register_screen.dart';
+import 'package:foodtogo_shippers/services/accepted_order_services.dart';
+import 'package:foodtogo_shippers/services/online_shipper_status_services.dart';
+import 'package:foodtogo_shippers/services/order_services.dart';
+import 'package:foodtogo_shippers/services/shipper_services.dart';
 import 'package:foodtogo_shippers/services/user_services.dart';
 import 'package:foodtogo_shippers/settings/kcolors.dart';
 
@@ -28,12 +34,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   late bool _isLogining;
   bool _isLoginFailed = false;
 
-  Future<void> _login(BuildContext context) async {
+  _updateLocation() async {
+    final onlineShipperStatusSevices = OnlineShipperStatusServices();
+    final getResult =
+        await onlineShipperStatusSevices.getDTO(UserServices.userId!);
+
+    if (getResult == null) {
+      final onlineShipperStatusCreateDTO = OnlineShipperStatusCreateDTO(
+        shipperId: UserServices.userId!,
+        geoLatitude: UserServices.currentLatitude,
+        geoLongitude: UserServices.currentLongitude,
+        isAvailable: true,
+      );
+      final createResult =
+          await onlineShipperStatusSevices.create(onlineShipperStatusCreateDTO);
+    } else {
+      final onlineShipperStatusUpdateDTO = OnlineShipperStatusUpdateDTO(
+        shipperId: UserServices.userId!,
+        geoLatitude: UserServices.currentLatitude,
+        geoLongitude: UserServices.currentLongitude,
+        isAvailable: getResult.isAvailable,
+      );
+      final updateResult = await onlineShipperStatusSevices.update(
+          UserServices.userId!, onlineShipperStatusUpdateDTO);
+    }
+  }
+
+  _login(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       var loginRequestDTO = LoginRequestDTO(
         username: _usernameController.text,
         password: _passwordController.text,
-        loginFromApp: LoginFromApp.Customer.name,
+        loginFromApp: LoginFromApp.Shipper.name,
       );
 
       if (mounted) {
@@ -49,68 +81,72 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await userServices.checkLocalLoginAuthorized();
       if (UserServices.isAuthorized) {
         //update location to server
-        final onlineCustomerLocationCreateDTO = OnlineCustomerLocationCreateDTO(
-          customerId: UserServices.userId!,
-          geoLatitude: UserServices.currentLatitude,
-          geoLongitude: UserServices.currentLongitude,
+        await _updateLocation();
+
+        //check if shipper is created?
+        final shipperServices = ShipperServices();
+        final shipperQueryResult =
+            await shipperServices.getDTO(UserServices.userId!);
+
+        if (shipperQueryResult == null) {
+          if (context.mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    ShipperRegisterScreen(userId: UserServices.userId!),
+              ),
+            );
+          }
+          return;
+        }
+
+        //check if shipper is currently delivering an order
+        final acceptedOrderServices = AcceptedOrderServices();
+
+        final currentOrderId =
+            await acceptedOrderServices.getCurrentOrderId(UserServices.userId!);
+        UserServices.currentOrderId = currentOrderId;
+
+        if (mounted) {
+          setState(() {
+            _isLogining = false;
+          });
+        }
+
+        if (!loginResponseDTO.isSuccess) {
+          //login failed
+          setState(() {
+            _isLoginFailed = true;
+          });
+        } else {
+          setState(() {
+            _isLoginFailed = false;
+          });
+
+          _routeByCurrentOrder(currentOrderId);
+        }
+      }
+    }
+  }
+
+  _routeByCurrentOrder(int currentOrderId) {
+    if (currentOrderId == 0) {
+      if (context.mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const TabsScreen(),
+          ),
         );
-
-        final onlineCustomerLocationSevices = OnlineCustomerLocationServices();
-        final createResult = await onlineCustomerLocationSevices
-            .create(onlineCustomerLocationCreateDTO);
-
-        if (!createResult) {
-          final onlineCustomerLocationUpdateDTO =
-              OnlineCustomerLocationUpdateDTO(
-            customerId: UserServices.userId!,
-            geoLatitude: UserServices.currentLatitude,
-            geoLongitude: UserServices.currentLongitude,
-          );
-          final updateResult = await onlineCustomerLocationSevices.update(
-              UserServices.userId!, onlineCustomerLocationUpdateDTO);
-        }
       }
-
-      final shipperservices = shipperservices();
-      final customerQueryResult =
-          await shipperservices.getDTO(UserServices.userId!);
-
-      if (customerQueryResult == null) {
-        if (context.mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  CustomerRegisterScreen(userId: UserServices.userId!),
-            ),
-          );
-        }
-        return;
-      }
-
-      if (mounted) {
-        setState(() {
-          _isLogining = false;
-        });
-      }
-
-      if (!loginResponseDTO.isSuccess) {
-        setState(() {
-          _isLoginFailed = true;
-        });
-      } else {
-        //login failed
-        setState(() {
-          _isLoginFailed = false;
-        });
-
-        if (context.mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const TabsScreen(),
-            ),
-          );
-        }
+    } else {
+      if (context.mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) =>
+                CurrentAcceptedOrderScreen(orderId: currentOrderId),
+          ),
+        );
       }
     }
   }
@@ -133,7 +169,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FoodToGo - shippers'),
+        title: const Text('FoodToGo - Shippers'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(35, 25, 40, 0),

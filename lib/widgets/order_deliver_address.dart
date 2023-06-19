@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:foodtogo_shippers/models/enum/order_status.dart';
 import 'package:foodtogo_shippers/models/enum/user_type.dart';
 import 'package:foodtogo_shippers/models/order.dart';
 import 'package:foodtogo_shippers/screens/rating_user_screen.dart';
@@ -14,8 +15,26 @@ class OrderDeliverAddress extends StatelessWidget {
 
   final Order order;
 
+  _navigateToRatingScreen(
+      {required BuildContext context,
+      required UserType fromUserType,
+      required UserType toUserType,
+      required Order order}) {
+    if (context.mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => RatingUserScreen(
+              order: order, fromUserType: fromUserType, toUserType: toUserType),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isShowingRatingButton =
+        order.status != OrderStatus.Placed.name.toLowerCase();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -36,16 +55,45 @@ class OrderDeliverAddress extends StatelessWidget {
           child: Column(
             children: [
               ListTile(
-                leading: const Icon(Icons.person),
-                title: Text(
-                  '${order.customer.lastName} ${order.customer.middleName} ${order.customer.firstName}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
+                leading: const Icon(Icons.person_outline),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${order.customer.lastName} ${order.customer.middleName} ${order.customer.firstName}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    RatingBarIndicator(
+                      rating: order.customer.rating,
+                      itemBuilder: (context, index) => const Icon(
+                        Icons.star,
+                        color: Colors.amber,
+                      ),
+                      itemCount: 5,
+                      itemSize: 20.0,
+                      direction: Axis.horizontal,
+                    ),
+                  ],
+                ),
+                trailing: Transform.translate(
+                  offset: const Offset(10, 2),
+                  child: !isShowingRatingButton
+                      ? null
+                      : RatingButton(
+                          onButtonPressed: () {
+                            _navigateToRatingScreen(
+                                context: context,
+                                fromUserType: UserType.Shipper,
+                                toUserType: UserType.Customer,
+                                order: order);
+                          },
+                        ),
                 ),
               ),
               ListTile(
-                leading: const Icon(Icons.phone),
+                leading: const Icon(Icons.phone_outlined),
                 title: Text(order.customer.phoneNumber),
               ),
               ListTile(

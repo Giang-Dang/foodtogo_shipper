@@ -1,4 +1,4 @@
-import 'package:foodtogo_customers/models/merchant.dart';
+import 'package:foodtogo_shippers/models/merchant.dart';
 
 class Promotion {
   final int id;

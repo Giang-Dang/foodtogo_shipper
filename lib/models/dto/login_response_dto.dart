@@ -1,4 +1,4 @@
-import 'package:foodtogo_customers/models/dto/user_dto.dart';
+import 'package:foodtogo_shippers/models/dto/user_dto.dart';
 
 class LoginResponseDTO {
   const LoginResponseDTO({

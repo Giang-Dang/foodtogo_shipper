@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:foodtogo_shippers/models/enum/order_status.dart';
 import 'package:foodtogo_shippers/models/enum/user_type.dart';
 import 'package:foodtogo_shippers/models/order.dart';
 import 'package:foodtogo_shippers/screens/rating_merchant_screen.dart';
@@ -31,6 +32,9 @@ class OrderMerchant extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isShowingRatingButton =
+        order.status != OrderStatus.Placed.name.toLowerCase();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -71,18 +75,20 @@ class OrderMerchant extends StatelessWidget {
                     ),
                   ],
                 ),
-                trailing: Transform.translate(
-                  offset: const Offset(10, 2),
-                  child: RatingButton(
-                    onButtonPressed: () {
-                      _navigateToRatingScreen(
-                          context: context,
-                          fromUserType: UserType.Customer,
-                          toUserType: UserType.Merchant,
-                          order: order);
-                    },
-                  ),
-                ),
+                trailing: !isShowingRatingButton
+                    ? null
+                    : Transform.translate(
+                        offset: const Offset(10, 2),
+                        child: RatingButton(
+                          onButtonPressed: () {
+                            _navigateToRatingScreen(
+                                context: context,
+                                fromUserType: UserType.Shipper,
+                                toUserType: UserType.Merchant,
+                                order: order);
+                          },
+                        ),
+                      ),
               ),
               ListTile(
                 leading: const Icon(Icons.phone_outlined),

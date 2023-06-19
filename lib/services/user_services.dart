@@ -24,6 +24,7 @@ class UserServices {
   static int? userId = 0;
   static double currentLongitude = 0.0;
   static double currentLatitude = 0.0;
+  static int currentOrderId = 0;
 
   Future<List<UserDTO>?> getAllDTOs({
     String? searchUserName,
@@ -254,7 +255,7 @@ class UserServices {
         result: null,
       );
     }
-    
+
     return APIResponseDTO(
       statusCode: responseObject['statusCode'],
       isSuccess: responseObject['isSuccess'],
@@ -263,7 +264,7 @@ class UserServices {
     );
   }
 
-  FlutterSecureStorage getSecureStorage() {
+  FlutterSecureStorage _getSecureStorage() {
     AndroidOptions getAndroidOptions() => const AndroidOptions(
           encryptedSharedPreferences: true,
         );
@@ -272,7 +273,7 @@ class UserServices {
   }
 
   Future<void> saveLoginInfo(String token, int userId) async {
-    final storage = getSecureStorage();
+    final storage = _getSecureStorage();
     await storage.delete(key: kTokenKeyName);
     await storage.delete(key: kUserIdKeyName);
     await storage.write(key: kTokenKeyName, value: token);
@@ -280,18 +281,18 @@ class UserServices {
   }
 
   Future<void> deleteStoredLoginInfo() async {
-    final storage = getSecureStorage();
+    final storage = _getSecureStorage();
     await storage.delete(key: kTokenKeyName);
     await storage.delete(key: kUserIdKeyName);
   }
 
   Future<String?> getLoginToken() async {
-    final storage = getSecureStorage();
+    final storage = _getSecureStorage();
     return await storage.read(key: kTokenKeyName);
   }
 
   Future<String?> getStoredUserId() async {
-    final storage = getSecureStorage();
+    final storage = _getSecureStorage();
     return await storage.read(key: kUserIdKeyName);
   }
 

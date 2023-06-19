@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foodtogo_shippers/models/enum/order_status.dart';
 import 'package:foodtogo_shippers/models/order.dart';
+import 'package:foodtogo_shippers/screens/order_location_status_screen.dart';
 import 'package:foodtogo_shippers/services/order_services.dart';
 import 'package:foodtogo_shippers/settings/kcolors.dart';
 
@@ -47,6 +48,19 @@ class OrderStatusWidget extends StatelessWidget {
                       color: orderServices.getOrderColor(order.status),
                       fontWeight: FontWeight.bold),
                 ),
+                trailing: const Icon(
+                  Icons.navigate_next_rounded,
+                  color: KColors.kPrimaryColor,
+                  size: 32,
+                ),
+                onTap: () {
+                  if (context.mounted) {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) =>
+                          OrderLocationStatusScreen(order: order),
+                    ));
+                  }
+                },
               ),
               if (isCancelled)
                 ListTile(

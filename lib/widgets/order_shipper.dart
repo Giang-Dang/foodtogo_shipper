@@ -73,18 +73,6 @@ class OrderShipper extends StatelessWidget {
                           ),
                         ],
                       ),
-                      trailing: Transform.translate(
-                        offset: const Offset(10, 2),
-                        child: RatingButton(
-                          onButtonPressed: () {
-                            _navigateToRatingScreen(
-                                context: context,
-                                fromUserType: UserType.Customer,
-                                toUserType: UserType.Shipper,
-                                order: order);
-                          },
-                        ),
-                      ),
                     ),
                     ListTile(
                       leading: const Icon(Icons.two_wheeler),
