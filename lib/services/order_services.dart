@@ -309,7 +309,7 @@ class OrderServices {
 
   Color getOrderColor(String orderStatus) {
     if (orderStatus == OrderStatus.Placed.name.toLowerCase()) {
-      return KColors.kLightTextColor;
+      return KColors.kBlue;
     }
     if (orderStatus == OrderStatus.Getting.name.toLowerCase()) {
       return KColors.kBlue;
@@ -388,9 +388,19 @@ class OrderServices {
     return 'NA';
   }
 
+  OrderStatus? getOrderStatus(String orderStatus) {
+    for (var value in OrderStatus.values) {
+      if (orderStatus.toLowerCase() == value.name.toLowerCase()) {
+        return value;
+      }
+    }
+    log('OrderServices.getOrderStatusIndex() -1');
+    return null;
+  }
+
   int getOrderStatusIndex(String orderStatus) {
     for (var value in OrderStatus.values) {
-      if (orderStatus == value.name.toLowerCase()) {
+      if (orderStatus.toLowerCase() == value.name.toLowerCase()) {
         return value.index;
       }
     }

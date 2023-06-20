@@ -224,26 +224,6 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
           await acceptedOrderServices.insert(UserServices.userId!, order.id);
 
       if (context.mounted && isOrderStored) {
-        final newOrder = Order(
-            id: order.id,
-            merchant: order.merchant,
-            shipper: order.shipper,
-            customer: order.customer,
-            promotion: order.promotion,
-            placedTime: order.placedTime,
-            eta: order.eta,
-            deliveryCompletionTime: order.deliveryCompletionTime,
-            orderPrice: order.orderPrice,
-            shippingFee: order.shippingFee,
-            appFee: order.appFee,
-            promotionDiscount: order.promotionDiscount,
-            status: OrderStatus.Getting.name.toLowerCase(),
-            cancellationReason: order.cancellationReason,
-            cancelledBy: order.cancelledBy,
-            deliveryAddress: order.deliveryAddress,
-            deliveryLongitude: order.deliveryLongitude,
-            deliveryLatitude: order.deliveryLatitude);
-
         Navigator.of(context).pushReplacement(MaterialPageRoute(
           builder: (context) => CurrentAcceptedOrderScreen(orderId: order.id),
         ));

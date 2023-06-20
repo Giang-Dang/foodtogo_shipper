@@ -173,13 +173,6 @@ class _OrderLocationStatusScreenState extends State<OrderLocationStatusScreen> {
           zoom: 15,
         ),
         markers: {
-          if (_shipperLocation != null)
-            Marker(
-              markerId: const MarkerId('shipper'),
-              position: _shipperLocation!,
-              infoWindow: const InfoWindow(title: 'Shipper'),
-              icon: _shipperIcon ?? BitmapDescriptor.defaultMarker,
-            ),
           Marker(
             markerId: const MarkerId('customer'),
             position: _deliveryLocation!,
@@ -192,6 +185,13 @@ class _OrderLocationStatusScreenState extends State<OrderLocationStatusScreen> {
             infoWindow: const InfoWindow(title: 'Merchant'),
             icon: _merchantIcon ?? BitmapDescriptor.defaultMarker,
           ),
+          if (_shipperLocation != null)
+            Marker(
+                markerId: const MarkerId('shipper'),
+                position: _shipperLocation!,
+                infoWindow: const InfoWindow(title: 'Shipper'),
+                icon: _shipperIcon ?? BitmapDescriptor.defaultMarker,
+                zIndex: 1.0),
         },
         buildingsEnabled: false,
         onMapCreated: (controller) {

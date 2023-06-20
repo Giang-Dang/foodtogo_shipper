@@ -14,7 +14,7 @@ class ShipperCreateDTO {
     required this.middleName,
     required this.vehicleType,
     required this.vehicleNumberPlate,
-    required this.rating,
+    this.rating = 0,
   });
 
   factory ShipperCreateDTO.fromJson(Map<String, dynamic> json) {

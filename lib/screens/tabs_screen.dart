@@ -8,7 +8,8 @@ import 'package:foodtogo_shippers/services/online_shipper_status_services.dart';
 import 'package:foodtogo_shippers/services/user_services.dart';
 import 'package:foodtogo_shippers/settings/kcolors.dart';
 import 'package:foodtogo_shippers/widgets/me_widget.dart';
-import 'package:foodtogo_shippers/widgets/order_widget.dart';
+import 'package:foodtogo_shippers/widgets/available_orders_widget.dart';
+import 'package:foodtogo_shippers/widgets/orders_widget.dart';
 
 enum TabName { orders, me }
 
@@ -25,9 +26,9 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
   DateTime _timeBackPressed = DateTime.now();
   int _selectedPageIndex = 0;
 
-  Widget _activePage = const OrderWidget();
+  Widget _activePage = const OrdersWidget();
   bool _isAppBarShow = true;
-  late bool _isFloatingButtonShow;
+  bool _isFloatingButtonShow = false;
 
   Timer? _initTimer;
 
@@ -45,7 +46,7 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
       setState(() {
         _selectedPageIndex = index;
         if (_selectedPageIndex == TabName.orders.index) {
-          _activePage = const OrderWidget();
+          _activePage = const OrdersWidget();
           _isAppBarShow = true;
           _isFloatingButtonShow = false;
         } else if (_selectedPageIndex == TabName.me.index) {
@@ -53,7 +54,7 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
           _isAppBarShow = false;
           _isFloatingButtonShow = false;
         } else {
-          _activePage = const OrderWidget();
+          _activePage = const OrdersWidget();
           _isAppBarShow = false;
           _isFloatingButtonShow = false;
         }

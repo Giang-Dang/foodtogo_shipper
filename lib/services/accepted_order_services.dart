@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:foodtogo_shippers/services/user_services.dart';
 import 'package:sqflite/sqflite.dart' as sql;
 import 'package:sqflite/sqlite_api.dart';
 import 'package:path/path.dart' as path;
@@ -33,6 +34,7 @@ class AcceptedOrderServices {
         whereArgs: [userId],
       );
       log('AcceptedOrderServices.delete affects $rowCount row(s).');
+      UserServices.currentOrderId = 0;
       return true;
     } catch (e) {
       log('AcceptedOrderServices.delete $e');

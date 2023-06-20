@@ -6,14 +6,14 @@ import 'package:foodtogo_shippers/services/user_services.dart';
 import 'package:foodtogo_shippers/settings/kcolors.dart';
 import 'package:foodtogo_shippers/widgets/order_list_item.dart';
 
-class OrderWidget extends StatefulWidget {
-  const OrderWidget({Key? key}) : super(key: key);
+class AvailableOrdersWidget extends StatefulWidget {
+  const AvailableOrdersWidget({Key? key}) : super(key: key);
 
   @override
-  State<OrderWidget> createState() => _OrderWidgetState();
+  State<AvailableOrdersWidget> createState() => _AvailableOrdersWidgetState();
 }
 
-class _OrderWidgetState extends State<OrderWidget> {
+class _AvailableOrdersWidgetState extends State<AvailableOrdersWidget> {
   final _distanceTextController = TextEditingController();
   final _formDistanceKey = GlobalKey<FormState>();
 
@@ -118,11 +118,14 @@ class _OrderWidgetState extends State<OrderWidget> {
                     ),
                   ),
                   snapshot.data!.isEmpty
-                      ? const Center(
-                          child: Text(
-                          'There are currently no available orders.',
-                          style: TextStyle(fontSize: 16),
-                        ))
+                      ? const SizedBox(
+                          height: 400,
+                          child: Center(
+                              child: Text(
+                            'There are currently no available orders.',
+                            style: TextStyle(fontSize: 16),
+                          )),
+                        )
                       : Container(),
                   for (var order in snapshot.data!) OrderListItem(order: order),
                 ],
