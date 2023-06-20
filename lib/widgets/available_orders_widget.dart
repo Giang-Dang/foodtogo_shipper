@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:foodtogo_shippers/models/enum/order_status.dart';
 import 'package:foodtogo_shippers/models/order.dart';
@@ -28,6 +30,9 @@ class _AvailableOrdersWidgetState extends State<AvailableOrdersWidget> {
       }
     }
 
+    final userServices = UserServices();
+    await userServices.getUserLocation();
+
     List<Order> orderList = [];
 
     final orderServices = OrderServices();
@@ -52,71 +57,70 @@ class _AvailableOrdersWidgetState extends State<AvailableOrdersWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _getOrders(double.tryParse(_distanceTextController.text)),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return Container(
-            color: KColors.kBackgroundColor,
-            child: const Center(
+    return Container(
+      color: KColors.kBackgroundColor,
+      child: FutureBuilder(
+        future: _getOrders(double.tryParse(_distanceTextController.text)),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(
               child: CircularProgressIndicator.adaptive(),
-            ),
-          );
-        } else {
-          return Container(
-            color: KColors.kBackgroundColor,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Container(
-                    margin: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                    child: Form(
-                      key: _formDistanceKey,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Flexible(
-                            flex: 4,
-                            child: Text(
-                              'Search distance:',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge!
-                                  .copyWith(
-                                    color: KColors.kTextColor,
-                                  ),
-                            ),
+            );
+          } else {
+            return ListView(
+              shrinkWrap: false,
+              children: [
+                Container(
+                  margin: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                  child: Form(
+                    key: _formDistanceKey,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          flex: 4,
+                          child: Text(
+                            'Search distance:',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge!
+                                .copyWith(
+                                  color: KColors.kTextColor,
+                                ),
                           ),
-                          const SizedBox(width: 20),
-                          Flexible(
-                            child: TextFormField(
-                              controller: _distanceTextController,
-                              style: const TextStyle(fontSize: 16),
-                              decoration: const InputDecoration(
-                                suffixText: 'km',
-                              ),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter a valid distance.';
-                                }
+                        ),
+                        const SizedBox(width: 20),
+                        Flexible(
+                          fit: FlexFit.tight,
+                          child: TextFormField(
+                            controller: _distanceTextController,
+                            style: const TextStyle(fontSize: 16),
+                            decoration: const InputDecoration(
+                              suffixText: 'km',
+                            ),
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a valid distance.';
+                              }
 
-                                if (double.tryParse(value) == null) {
-                                  return 'Please enter a valid distance.';
-                                }
-                                return null;
-                              },
-                              onFieldSubmitted: (value) {
-                                if (_formDistanceKey.currentState!.validate()) {
-                                  setState(() {});
-                                }
-                              },
-                            ),
+                              if (double.tryParse(value) == null) {
+                                return 'Please enter a valid distance.';
+                              }
+                              return null;
+                            },
+                            onFieldSubmitted: (value) {
+                              if (_formDistanceKey.currentState!.validate()) {
+                                setState(() {});
+                              }
+                            },
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
+                ),
+                if (snapshot.data != null)
                   snapshot.data!.isEmpty
                       ? const SizedBox(
                           height: 400,
@@ -127,13 +131,12 @@ class _AvailableOrdersWidgetState extends State<AvailableOrdersWidget> {
                           )),
                         )
                       : Container(),
-                  for (var order in snapshot.data!) OrderListItem(order: order),
-                ],
-              ),
-            ),
-          );
-        }
-      },
+                for (var order in snapshot.data!) OrderListItem(order: order),
+              ],
+            );
+          }
+        },
+      ),
     );
   }
 }

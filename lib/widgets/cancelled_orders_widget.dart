@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:foodtogo_shippers/models/enum/order_status.dart';
 import 'package:foodtogo_shippers/models/order.dart';
@@ -36,39 +38,39 @@ class _CancelledOrdersWidgetState extends State<CancelledOrdersWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _getCancelledOrders(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return Container(
-            color: KColors.kBackgroundColor,
-            child: const Center(
+    return Container(
+      color: KColors.kBackgroundColor,
+      child: FutureBuilder(
+        future: _getCancelledOrders(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(
               child: CircularProgressIndicator.adaptive(),
-            ),
-          );
-        } else {
-          return Container(
-            color: KColors.kBackgroundColor,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
+            );
+          } else {
+            return ListView(
+              shrinkWrap: false,
+              children: [
+                if (snapshot.data != null)
                   snapshot.data!.isEmpty
                       ? const SizedBox(
                           height: 400,
                           child: Center(
-                              child: Text(
-                            'There are currently no cancelled orders.',
-                            style: TextStyle(fontSize: 16),
-                          )),
+                            child: Text(
+                              'There are currently no cancelled orders.',
+                              style: TextStyle(fontSize: 16),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
                         )
                       : Container(),
+                if (snapshot.data != null)
                   for (var order in snapshot.data!) OrderListItem(order: order),
-                ],
-              ),
-            ),
-          );
-        }
-      },
+              ],
+            );
+          }
+        },
+      ),
     );
   }
 }

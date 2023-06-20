@@ -8,7 +8,7 @@ class OrdersWidget extends StatefulWidget {
   const OrdersWidget({Key? key}) : super(key: key);
 
   @override
-  _OrdersWidgetState createState() => _OrdersWidgetState();
+  State<OrdersWidget> createState() => _OrdersWidgetState();
 }
 
 class _OrdersWidgetState extends State<OrdersWidget>
@@ -54,6 +54,8 @@ class _OrdersWidgetState extends State<OrdersWidget>
 
   @override
   Widget build(BuildContext context) {
+    final deviceWidth = MediaQuery.of(context).size.width;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
       color: KColors.kBackgroundColor,
@@ -90,6 +92,7 @@ class _OrdersWidgetState extends State<OrdersWidget>
           const SizedBox(height: 5),
           Expanded(
             child: TabBarView(
+              
               controller: _tabController,
               children: const [
                 AvailableOrdersWidget(),
