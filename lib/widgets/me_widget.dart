@@ -2,15 +2,12 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:foodtogo_shippers/models/customer.dart';
-import 'package:foodtogo_shippers/models/dto/update_dto/customer_update_dto.dart';
 import 'package:foodtogo_shippers/models/dto/update_dto/shipper_update_dto.dart';
 import 'package:foodtogo_shippers/models/dto/update_dto/user_update_dto.dart';
 import 'package:foodtogo_shippers/models/dto/user_dto.dart';
 import 'package:foodtogo_shippers/models/shipper.dart';
 import 'package:foodtogo_shippers/screens/edit_shipper_screen.dart';
 import 'package:foodtogo_shippers/screens/login_screen.dart';
-import 'package:foodtogo_shippers/services/customer_services.dart';
 import 'package:foodtogo_shippers/services/shipper_services.dart';
 import 'package:foodtogo_shippers/services/user_services.dart';
 import 'package:foodtogo_shippers/settings/kcolors.dart';

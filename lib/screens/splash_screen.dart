@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,7 +9,6 @@ import 'package:foodtogo_shippers/screens/login_screen.dart';
 import 'package:foodtogo_shippers/screens/shipper_register_screen.dart';
 import 'package:foodtogo_shippers/screens/tabs_screen.dart';
 import 'package:foodtogo_shippers/services/accepted_order_services.dart';
-import 'package:foodtogo_shippers/services/customer_services.dart';
 import 'package:foodtogo_shippers/services/online_shipper_status_services.dart';
 import 'package:foodtogo_shippers/services/shipper_services.dart';
 import 'package:foodtogo_shippers/services/user_services.dart';

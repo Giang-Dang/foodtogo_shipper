@@ -339,7 +339,7 @@ class UserServices {
     Position locationData = await locationServices.determinePosition();
 
     int attempts = 0;
-    while (locationAccuracy > 50.0 && attempts < 10) {
+    while (locationAccuracy > 100.0 && attempts < 10) {
       locationData = await locationServices.determinePosition();
       log(locationData.accuracy.toString());
       locationAccuracy = math.min(locationAccuracy, locationData.accuracy);

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:foodtogo_shippers/screens/splash_screen.dart';
-import 'package:foodtogo_shippers/screens/user_register_screen.dart';
 import 'package:foodtogo_shippers/settings/kTheme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

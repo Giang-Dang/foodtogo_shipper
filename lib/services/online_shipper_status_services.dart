@@ -3,9 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:foodtogo_shippers/models/dto/create_dto/online_shipper_status_create_dto.dart';
-import 'package:foodtogo_shippers/models/dto/online_customer_location_dto.dart';
 import 'package:foodtogo_shippers/models/dto/online_shipper_status_dto.dart';
-import 'package:foodtogo_shippers/models/dto/update_dto/online_customer_location_update_dto.dart';
 import 'package:foodtogo_shippers/models/dto/update_dto/online_shipper_status_update_dto.dart';
 import 'package:foodtogo_shippers/services/user_services.dart';
 import 'package:foodtogo_shippers/settings/secrets.dart';

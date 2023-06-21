@@ -224,9 +224,12 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
           await acceptedOrderServices.insert(UserServices.userId!, order.id);
 
       if (context.mounted && isOrderStored) {
-        Navigator.of(context).pushReplacement(MaterialPageRoute(
-          builder: (context) => CurrentAcceptedOrderScreen(orderId: order.id),
-        ));
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => CurrentAcceptedOrderScreen(orderId: order.id),
+          ),
+          (Route<dynamic> route) => false,
+        );
       }
     } else {
       _showAlertDialog('Cannot Accept Order',

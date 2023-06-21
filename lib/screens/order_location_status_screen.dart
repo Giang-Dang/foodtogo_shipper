@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:foodtogo_shippers/models/enum/order_status.dart';
@@ -6,6 +7,10 @@ import 'package:foodtogo_shippers/models/order.dart';
 import 'package:foodtogo_shippers/services/online_shipper_status_services.dart';
 import 'package:foodtogo_shippers/services/order_services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+import 'package:flutter/services.dart';
+
+const platform = MethodChannel('com.example.myapp/map');
 
 class OrderLocationStatusScreen extends StatefulWidget {
   const OrderLocationStatusScreen({
@@ -54,6 +59,32 @@ class _OrderLocationStatusScreenState extends State<OrderLocationStatusScreen> {
     }
   ]
   ''';
+  _onNavigateTap() {
+    final orderStatus = widget.order.status.toLowerCase();
+    if (orderStatus == OrderStatus.Getting.name.toLowerCase()) {
+      _launchMap(
+        widget.order.merchant.geoLatitude,
+        widget.order.merchant.geoLongitude,
+      );
+    }
+
+    if (orderStatus == OrderStatus.DriverAtMerchant.name.toLowerCase() ||
+        orderStatus == OrderStatus.Delivering.name.toLowerCase() ||
+        orderStatus == OrderStatus.DriverAtDeliveryPoint.name.toLowerCase()) {
+      _launchMap(
+        widget.order.deliveryLatitude,
+        widget.order.deliveryLongitude,
+      );
+    }
+  }
+
+  _launchMap(double lat, double lng) async {
+    try {
+      await platform.invokeMethod('launchMap', {'lat': lat, 'lng': lng});
+    } on PlatformException catch (e) {
+      log(e.toString());
+    }
+  }
 
   _loadShipperLocation() async {
     LatLng? shipperLocation;
@@ -200,7 +231,7 @@ class _OrderLocationStatusScreenState extends State<OrderLocationStatusScreen> {
         polylines: {
           if (isShowingRoute)
             Polyline(
-              polylineId: PolylineId('route'),
+              polylineId: const PolylineId('route'),
               points: routePoints,
               color: Colors.blue,
               width: 5,
@@ -214,6 +245,11 @@ class _OrderLocationStatusScreenState extends State<OrderLocationStatusScreen> {
         title: const Text('Back to order details'),
       ),
       body: bodyContent,
+      floatingActionButton: FloatingActionButton(
+        onPressed: _onNavigateTap,
+        child: const Icon(Icons.map_outlined),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }

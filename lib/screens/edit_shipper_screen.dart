@@ -1,12 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:foodtogo_shippers/models/dto/update_dto/customer_update_dto.dart';
 import 'package:foodtogo_shippers/models/dto/update_dto/shipper_update_dto.dart';
 import 'package:foodtogo_shippers/models/dto/update_dto/user_update_dto.dart';
 import 'package:foodtogo_shippers/models/dto/user_dto.dart';
 import 'package:foodtogo_shippers/models/shipper.dart';
-import 'package:foodtogo_shippers/services/customer_services.dart';
 import 'package:foodtogo_shippers/services/shipper_services.dart';
 import 'package:foodtogo_shippers/services/user_services.dart';
 import 'package:foodtogo_shippers/settings/kcolors.dart';
@@ -90,9 +88,14 @@ class _EditShipperScreenState extends State<EditShipperScreen> {
 
   _onSavePressed() async {
     if (_formEditCustomerInfoKey.currentState!.validate()) {
+      if (mounted) {
+        setState(() {
+          _isEditing = true;
+        });
+      }
       final userServices = UserServices();
       final userUpdateDTO = UserUpdateDTO(
-        id: _userDTO!.id,
+        id: _userDTO.id,
         phoneNumber: _phoneNumberController.text,
         email: _emailController.text,
       );
@@ -111,6 +114,12 @@ class _EditShipperScreenState extends State<EditShipperScreen> {
       var isSuccess = await userServices.update(_userDTO.id, userUpdateDTO);
       isSuccess &=
           await shipperServices.update(_shipper.userId, shipperUpdateDTO);
+
+      if (mounted) {
+        setState(() {
+          _isEditing = false;
+        });
+      }
 
       if (!isSuccess) {
         _showAlertDialog(

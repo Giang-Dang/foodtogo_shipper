@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:foodtogo_shippers/models/menu_item.dart';
 import 'package:foodtogo_shippers/models/order_detail.dart';
 import 'package:foodtogo_shippers/services/order_detail_services.dart';
 import 'package:foodtogo_shippers/services/user_services.dart';

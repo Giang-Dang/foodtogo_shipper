@@ -40,6 +40,8 @@ class _CurrentAcceptedOrderScreenState
   Timer? _initTimer;
   Timer? _updateLocationTimer;
 
+  final double _maxNearByDistance = 0.3;
+
   _initialize() async {
     if (mounted) {
       setState(() {
@@ -92,8 +94,7 @@ class _CurrentAcceptedOrderScreenState
     bool isSuccess = await orderServices.update(order.id, updateDTO);
 
     final acceptedOrderServices = AcceptedOrderServices();
-    isSuccess &=
-        await acceptedOrderServices.delete(UserServices.currentOrderId);
+    isSuccess &= await acceptedOrderServices.delete(UserServices.userId!);
 
     if (isSuccess) {
       if (context.mounted) {
@@ -241,7 +242,7 @@ class _CurrentAcceptedOrderScreenState
         order.deliveryLongitude,
       );
 
-      if (distance > 0.5) {
+      if (distance > _maxNearByDistance) {
         _showAlertDialog('Cannot Proccess To Next Step',
             'Your location is not near the delivery point.', () {
           if (context.mounted) {
@@ -275,7 +276,7 @@ class _CurrentAcceptedOrderScreenState
         order.merchant.geoLongitude,
       );
 
-      if (distance > 0.5) {
+      if (distance > _maxNearByDistance) {
         _showAlertDialog('Cannot Proccess To Next Step',
             'Your location is not near the merchant.', () {
           if (context.mounted) {
@@ -384,7 +385,7 @@ class _CurrentAcceptedOrderScreenState
         order.deliveryLongitude,
       );
 
-      if (distance > 0.1) {
+      if (distance > _maxNearByDistance) {
         _showAlertDialog('Cannot Proccess To Next Step',
             'Your location is not near the delivery point.', () {
           if (context.mounted) {
@@ -417,7 +418,7 @@ class _CurrentAcceptedOrderScreenState
         order.merchant.geoLongitude,
       );
 
-      if (distance > 0.1) {
+      if (distance > _maxNearByDistance) {
         _showAlertDialog('Cannot Proccess To Next Step',
             'Your location is not near the merchant.', () {
           if (context.mounted) {

@@ -4,7 +4,6 @@ import 'package:foodtogo_shippers/models/enum/user_type.dart';
 import 'package:foodtogo_shippers/models/order.dart';
 import 'package:foodtogo_shippers/screens/rating_user_screen.dart';
 import 'package:foodtogo_shippers/settings/kcolors.dart';
-import 'package:foodtogo_shippers/widgets/rating_button.dart';
 
 class OrderShipper extends StatelessWidget {
   const OrderShipper({

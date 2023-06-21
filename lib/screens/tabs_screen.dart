@@ -8,7 +8,6 @@ import 'package:foodtogo_shippers/services/online_shipper_status_services.dart';
 import 'package:foodtogo_shippers/services/user_services.dart';
 import 'package:foodtogo_shippers/settings/kcolors.dart';
 import 'package:foodtogo_shippers/widgets/me_widget.dart';
-import 'package:foodtogo_shippers/widgets/available_orders_widget.dart';
 import 'package:foodtogo_shippers/widgets/orders_widget.dart';
 
 enum TabName { orders, me }
