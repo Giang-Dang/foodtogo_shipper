@@ -5,6 +5,7 @@ import 'package:foodtogo_shippers/models/enum/order_status.dart';
 import 'package:foodtogo_shippers/models/enum/user_type.dart';
 import 'package:foodtogo_shippers/models/order.dart';
 import 'package:foodtogo_shippers/screens/current_accepted_order_screen.dart';
+import 'package:foodtogo_shippers/screens/tabs_screen.dart';
 import 'package:foodtogo_shippers/services/accepted_order_services.dart';
 import 'package:foodtogo_shippers/services/order_services.dart';
 import 'package:foodtogo_shippers/services/user_services.dart';
@@ -56,13 +57,25 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
 
   _isAbleToCancel(Order order) {
     if (order.status == OrderStatus.Placed.name.toLowerCase()) {
-      return true;
+      return false;
     }
     if (order.status == OrderStatus.Getting.name.toLowerCase()) {
       return true;
     }
     if (order.status == OrderStatus.DriverAtMerchant.name.toLowerCase()) {
       return true;
+    }
+    if (order.status == OrderStatus.Delivering.name.toLowerCase()) {
+      return true;
+    }
+    if (order.status == OrderStatus.DriverAtDeliveryPoint.name.toLowerCase()) {
+      return true;
+    }
+    if (order.status == OrderStatus.Completed.name.toLowerCase()) {
+      return false;
+    }
+    if (order.status == OrderStatus.Cancelled.name.toLowerCase()) {
+      return false;
     }
     return false;
   }
@@ -163,8 +176,12 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
     if (isSuccess) {
       _showAlertDialog('Cancelled', 'The order has been cancelled', () {
         if (context.mounted) {
-          Navigator.of(context).pop();
-          Navigator.of(context).pop();
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => const TabsScreen(),
+            ),
+            (Route<dynamic> route) => false,
+          );
         }
       });
     } else {
@@ -270,7 +287,8 @@ class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
       body: Container(
         padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
         width: double.infinity,
-        color: KColors.kPrimaryColor.withOpacity(0.2),
+        color: KColors.kSuperLightTextColor,
+        // color: KColors.kPrimaryColor.withOpacity(0.2),
         child: ListView(
           children: [
             //Order status

@@ -28,7 +28,8 @@ class CurrentAcceptedOrderDetailsScreen extends StatelessWidget {
       body: Container(
         padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
         width: double.infinity,
-        color: KColors.kPrimaryColor.withOpacity(0.2),
+        color: KColors.kSuperLightTextColor,
+        // color: KColors.kPrimaryColor.withOpacity(0.2),
         child: ListView(
           children: [
             //Order status

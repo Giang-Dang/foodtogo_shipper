@@ -190,7 +190,11 @@ class _OrderLocationStatusScreenState extends State<OrderLocationStatusScreen> {
 
       if (orderStatusIndex == OrderStatus.Getting.index) {
         routePoints = [_shipperLocation!, _merchantLocation!];
+      } else if (orderStatusIndex == OrderStatus.DriverAtMerchant.index) {
+        routePoints = [_shipperLocation!, _deliveryLocation!];
       } else if (orderStatusIndex == OrderStatus.Delivering.index) {
+        routePoints = [_shipperLocation!, _deliveryLocation!];
+      } else if (orderStatusIndex == OrderStatus.DriverAtDeliveryPoint.index) {
         routePoints = [_shipperLocation!, _deliveryLocation!];
       } else {
         isShowingRoute = false;
