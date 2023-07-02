@@ -8,7 +8,7 @@ This program is a component of the FoodToGo system.
 - Search for orders by distance.
 - View information about available/completed/cancelled orders.
 - Cancel orders.
-- Get directions using Google Maps.
+- Get directions using Google Maps App (android).
 
 ## System Architecture
 
